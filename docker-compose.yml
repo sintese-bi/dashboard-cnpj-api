@@ -9,7 +9,7 @@ services:
     volumes:
       - ./:/app
     ports:
-      - '8882:8080'
+      - '8888:8080'
 
   prod:
     container_name: comercial-data-collection-prod
@@ -19,7 +19,7 @@ services:
     volumes:
       - ./:/app
     ports:
-      - '8882:8080'
+      - '8888:8080'
       
 
 
