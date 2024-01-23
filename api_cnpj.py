@@ -214,16 +214,26 @@ def cnpj():
 
         count_state=count_state.sort_values(by='count', ascending=False)
 
-        final_dict = {'listCnpj':df_size.to_dict(orient='records'),'count_cnae':count_cnae,'count_cnpj':count_cnpj,'count_age':count_age.to_dict(orient='records'),'count_size':count_size.to_dict(orient='records'),'count_state':count_state,'market_size':market_size}
+        list_cnpj = df_size.to_dict(orient='records')
+        count_age_dict = count_age.to_dict(orient='records')
+        count_size_dict = count_size.to_dict(orient='records')
+        count_state_dict = count_state.to_dict(orient='records')
+
+        final_dict = {
+        'listCnpj': list_cnpj,
+        'count_cnae': count_cnae,
+        'count_cnpj': count_cnpj,
+        'count_age': count_age_dict,
+        'count_size': count_size_dict,
+        'count_state': count_state_dict,
+        'market_size': market_size
+                }
         return json.dumps(final_dict,indent=4)
     else:
         final_dict = {'listCnpj':[],'count_cnae':0,'count_cnpj':0,'market_size':0}
         return json.dumps(final_dict,indent=4)
 
         
-
-
-    
 
 
 @app.route(f'/v2/munlist', methods=['POST'])
@@ -244,8 +254,6 @@ def munlist():
  
 
     return json.dumps(final_dict,indent=4)
-
-
 
 
 if __name__ == '__main__':
