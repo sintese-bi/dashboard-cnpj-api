@@ -247,7 +247,7 @@ def munlist():
 
     cursor=connection.cursor()
 
-    query = cursor.execute(f"SELECT DISTINCT mm.muni_name from cnp_cnpj cc left join mun_municipio mm on cc.muncipio=mm.muni_cod WHERE uf='{state[0]}'")
+    query = cursor.execute(f"SELECT DISTINCT st.muni_name from state_muni st  WHERE state='{state[0]}'")
 
     query = cursor.fetchall()
 
