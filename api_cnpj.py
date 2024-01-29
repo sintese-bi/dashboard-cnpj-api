@@ -132,8 +132,9 @@ def cnpj():
     response = json.loads(request.data)
     cities = response.get("municipio")
     states = response.get("states")
+    dates = response.get("dateRange")
     size= response.get("porte")
-
+    print(dates)
     cnae_names = response.get('activities')
     if len(cnae_names)==1:
         query_cnaes = f"SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN ('{cnae_names[0]}') AND cna_subclass <> '' ORDER BY cna_subclass"
@@ -149,53 +150,67 @@ def cnpj():
     if cities is not None:
         print('none')
         municipio=find(cities)[0]
-
+    print(result)
     if len(states)==1:
         if len(municipio)==1:
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
-                        WHERE cc.cnae_principal  = '{result[0]}' AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
+                        WHERE cc.cnae_principal  IN {tuple(result)} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
                         left join em_empresas ee on ee.cnpj = tt.cnpj 
                         where tt.muni_name = '{cities[0]}' 
                         '''
         else:
             print('else')
             #municipio=find(cities)[0]
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal = '{result[0]}' AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)}'''
+                        WHERE cc.cnae_principal IN {tuple(result)} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)}'''
     else:
-        query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal= '{result[0]}' AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt '''
+                        WHERE cc.cnae_principal IN {tuple(result)} AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt '''
         
-    #print(query_cnpj)
+    print(query_cnpj)
 
 
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
-    if len(df)>0:
+    try:
+        df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
+        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
 
-        df_size = df[df['porte'].isin(size)]
-        print(df_size['porte'])
+        df2=df.sort_values('data_incio_atividade',ascending=False)
+        df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
+
+        df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
+        ultimo_valor = df_qtd['cna_name'].iloc[-1]
+        penultimo_valor = df_qtd['cna_name'].iloc[-2]
+
+        razao = round(abs((ultimo_valor-penultimo_valor)/penultimo_valor)*100,2)
+    except:
+        razao = 0
+    if len(df)>0:
+        df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
+        df_size = df_dates[df_dates['porte'].isin(size)]
 
         count_cnpj = len(df_size)
-        
+        df_qtd = df[['cna_name','data_incio_atividade']].groupby('cna_name').count()
+        print(pd.DataFrame(df_qtd))
 
         df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
         df_size['capital_social']=df_size['capital_social'].astype(float)
@@ -229,7 +244,8 @@ def cnpj():
         'count_age': count_age_dict,
         'count_size': count_size_dict,
         'count_state': count_state_dict,
-        'market_size': market_size
+        'market_size': market_size,
+        'market_growth': razao
                 }
         return json.dumps(final_dict,indent=4)
     else:
@@ -264,9 +280,9 @@ def fcnpj():
 
     if len(states)==1:
         if len(municipio)==1:
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
@@ -277,18 +293,18 @@ def fcnpj():
         else:
             print('else')
             #municipio=find(cities)[0]
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         WHERE cc.cnae_principal = '{result[0]}' AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)} LIMIT 50'''
     else:
-        query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
@@ -301,6 +317,8 @@ def fcnpj():
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
+    df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
+    df['data_incio_atividade']=df['data_incio_atividade'].astype(str)
     if len(df)>0:
 
         df_size = df[df['porte'].isin(size)]
