@@ -142,11 +142,15 @@ def cnpj():
         query_cnaes = f'''SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN {tuple(cnae_names)} AND cna_subclass <> '' ORDER BY cna_subclass'''
     
 
-    print(len(states))
 
     result = db.session.execute(text(query_cnaes)).fetchall()
     values = [row[0] for row in result]
     result = [value for value in values]
+    if len(cnae_names)==1:
+        query_cna = f"IN ('{result[0]}')"
+    else:
+        query_cna = f"IN {tuple(result)}"
+    print(len(states))
     if cities is not None:
         print('none')
         municipio=find(cities)[0]
@@ -159,7 +163,7 @@ def cnpj():
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
-                        WHERE cc.cnae_principal  IN {tuple(result)} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
+                        WHERE cc.cnae_principal  {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
                         left join em_empresas ee on ee.cnpj = tt.cnpj 
                         where tt.muni_name = '{cities[0]}' 
                         '''
@@ -173,7 +177,7 @@ def cnpj():
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal IN {tuple(result)} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)}'''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)}'''
     else:
         query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
@@ -182,7 +186,7 @@ def cnpj():
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal IN {tuple(result)} AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt '''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt '''
         
     print(query_cnpj)
 
@@ -268,6 +272,11 @@ def fcnpj():
     else:
         query_cnaes = f'''SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN {tuple(cnae_names)} AND cna_subclass <> '' ORDER BY cna_subclass'''
     
+    if len(cnae_names)==1:
+        query_cna = f"IN ('{result[0]}')"
+    else:
+        query_cna = f"IN {tuple(result)}"
+
 
     print(len(states))
 
@@ -286,7 +295,7 @@ def fcnpj():
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
-                        WHERE cc.cnae_principal  = '{result[0]}' AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
+                        WHERE cc.cnae_principal  {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
                         left join em_empresas ee on ee.cnpj = tt.cnpj 
                         where tt.muni_name = '{cities[0]} LIMIT 50' 
                         '''
@@ -300,7 +309,7 @@ def fcnpj():
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal = '{result[0]}' AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)} LIMIT 50'''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)} LIMIT 50'''
     else:
         query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
@@ -309,7 +318,7 @@ def fcnpj():
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal= '{result[0]}' AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt LIMIT 50 '''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt LIMIT 50 '''
         
     #print(query_cnpj)
 
