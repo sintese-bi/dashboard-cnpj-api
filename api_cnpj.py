@@ -194,23 +194,27 @@ def cnpj():
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
-    try:
-        df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
-        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
 
-        df2=df.sort_values('data_incio_atividade',ascending=False)
-        df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
-
-        df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
-        ultimo_valor = df_qtd['cna_name'].iloc[-1]
-        penultimo_valor = df_qtd['cna_name'].iloc[-2]
-
-        razao = round(abs((ultimo_valor-penultimo_valor)/penultimo_valor)*100,2)
-    except:
-        razao = 0
     if len(df)>0:
+        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
         df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
         df_size = df_dates[df_dates['porte'].isin(size)]
+
+        try:
+            df_size['data_incio_atividade']=pd.to_datetime(df_size['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+
+            df2=df_size.sort_values('data_incio_atividade',ascending=False)
+            df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
+
+            df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
+            ultimo_valor = df_qtd['cna_name'].iloc[-1]
+            print(ultimo_valor)
+            print(df_qtd)
+            penultimo_valor = df_qtd['cna_name'].iloc[-2]
+
+            razao = round(abs((ultimo_valor-penultimo_valor)/penultimo_valor)*100,2)
+        except:
+            razao = 0
 
         count_cnpj = len(df_size)
         df_qtd = df[['cna_name','data_incio_atividade']].groupby('cna_name').count()
