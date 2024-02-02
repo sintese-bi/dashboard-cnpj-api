@@ -8,6 +8,7 @@ import psycopg2 as pg
 import pandas as pd
 from flask import Flask
 from flask_caching import Cache
+import re
 
 db_password = "2023@Tag"
 #db_password = "saulodados"
@@ -196,12 +197,14 @@ def cnpj():
     df = pd.DataFrame(result_cnpj)
 
     if len(df)>0:
+        df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
+        df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+        df=df.sort_values(by='data_incio_atividade')
         df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
         df_size = df_dates[df_dates['porte'].isin(size)]
 
         try:
-            df_size['data_incio_atividade']=pd.to_datetime(df_size['data_incio_atividade'].astype(str),format='%Y-%m-%d')
 
             df2=df_size.sort_values('data_incio_atividade',ascending=False)
             df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
@@ -209,11 +212,22 @@ def cnpj():
             df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
             ultimo_valor = df_qtd['cna_name'].iloc[-1]
             print(ultimo_valor)
-            print(df_qtd)
+            #print(df_qtd)
             penultimo_valor = df_qtd['cna_name'].iloc[-2]
 
             razao = round(abs((ultimo_valor-penultimo_valor)/penultimo_valor)*100,2)
-        except:
+
+            df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
+            df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
+            df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
+            df_qtd.columns=['Dif_Meses','count']
+
+            print(df_qtd)
+
+            mkt_rate_dict = df_qtd.to_dict(orient='records')
+        except Exception as e:
+            print(e)
+            mkt_rate_dict=0
             razao = 0
 
         count_cnpj = len(df_size)
@@ -223,9 +237,30 @@ def cnpj():
         df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
         df_size['capital_social']=df_size['capital_social'].astype(float)
 
+        
+
+        df_quartile=df[['data_incio_atividade']]
+
+        q1,q2,q3=df_quartile['data_incio_atividade'].quantile([0.25, 0.5, 0.75])
+
+        contagem_q1 = df_size[df_size['data_incio_atividade'] <= q1].count()[0]
+
+        contagem_q2 = df_size[(df_size['data_incio_atividade'] > q1) & (df_size['data_incio_atividade'] <= q2)].count()[0]
+
+        contagem_q3 = df_size[(df_size['data_incio_atividade'] > q2) & (df_size['data_incio_atividade'] <= q3)].count()[0]
+
+        maior_quartil = max([contagem_q1,contagem_q2,contagem_q3])
+
+        if maior_quartil==contagem_q1:
+            market_trend = 'Alta'
+        elif maior_quartil == contagem_q2:
+            market_trend = 'Média'
+        else:
+            market_trend='Baixa'
+
         market_size = sum(df_size['capital_social'])
 
-
+        df_size['data_incio_atividade']=df_size['data_incio_atividade'].astype(str)
         count_age = df_size['idade'].value_counts().reset_index()
         count_age.columns=['age','count']
         count_age=count_age.sort_values(by='count', ascending=False)
@@ -253,7 +288,9 @@ def cnpj():
         'count_size': count_size_dict,
         'count_state': count_state_dict,
         'market_size': market_size,
-        'market_growth': razao
+        'market_growth': razao,
+        'market_trend': market_trend,
+        'market_growing':mkt_rate_dict
                 }
         return json.dumps(final_dict,indent=4)
     else:
@@ -342,6 +379,8 @@ def fcnpj():
 
         df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
         df_size['capital_social']=df_size['capital_social'].astype(float)
+
+        
 
         market_size = sum(df_size['capital_social'])
 
