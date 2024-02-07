@@ -123,7 +123,14 @@ def cities():
 
     return json_data
 
-
+def find_int(string):
+    padrao = re.compile(r'\d+')
+    correspondencias = padrao.findall(string)
+    
+    if correspondencias:
+        return int(correspondencias[0])
+    else:
+        return None
 
 
 @app.route(f'/{VERSION}/cnpj', methods=['POST'])
@@ -210,13 +217,10 @@ def cnpj():
             df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
 
             df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
-            ultimo_valor = df_qtd['cna_name'].iloc[-1]
-            print(ultimo_valor)
-            #print(df_qtd)
-            penultimo_valor = df_qtd['cna_name'].iloc[-2]
+            p_valor = df_qtd['cna_name'].iloc[0]
+            r_valor = df_qtd['cna_name'].iloc[1:].sum()
 
-            razao = round(abs((ultimo_valor-penultimo_valor)/penultimo_valor)*100,2)
-
+            razao = r_valor - p_valor
             df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
             df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
             df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
@@ -236,6 +240,13 @@ def cnpj():
 
         df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
         df_size['capital_social']=df_size['capital_social'].astype(float)
+        map_fat = {'Micro Empresa':'Igual ou inferior a R$360.000','Empresa de Pequeno porte':'Igual ou inferior a R$4.800.000,00 e superior a R$360.000,00','Demais':'Faturamento Não informado na Receita'}
+
+
+        df_size['Faturamento']=df_size['porte'].map(map_fat)
+        df_size['idade_']=df_size['idade'].apply(find_int)
+
+        mean_age = df_size['idade_'].mean()
 
         
 
@@ -290,7 +301,8 @@ def cnpj():
         'market_size': market_size,
         'market_growth': razao,
         'market_trend': market_trend,
-        'market_growing':mkt_rate_dict
+        'market_growing':mkt_rate_dict,
+        'mean_age':round(mean_age,2)
                 }
         return json.dumps(final_dict,indent=4)
     else:
