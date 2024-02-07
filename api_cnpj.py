@@ -9,16 +9,12 @@ import pandas as pd
 from flask import Flask
 from flask_caching import Cache
 import re
+from datetime import datetime, timedelta
 
 db_password = "2023@Tag"
 #db_password = "saulodados"
 db_password_encoded = quote_plus(db_password)
 
-data_atual = datetime.datetime.now()
-
-primeiro_dia_mes = data_atual.replace(day=1)
-
-primeiro_dia_mes_formatado = primeiro_dia_mes.strftime('%Y-%m-%d')
 
 # Atualize a string de conexão com o banco de dados substituindo a senha codificada
 DB_CONFIG = f"postgresql://postgres:{db_password_encoded}@159.65.42.225:5432/comercial_BI"
@@ -202,6 +198,27 @@ def cnpj():
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
+    df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+    dfo=df.copy()
+    dfo['dif'] = dfo['data_incio_atividade'].dt.to_period('M')
+    dft = pd.DataFrame(dfo[['cna_name','dif']].groupby('dif').count()).reset_index()
+    dft['dif']=pd.to_datetime(dft['dif'].astype(str) + '-01')
+    dft['dif']=pd.to_datetime(dft['dif'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
+    dft.sort_values(by='dif',ascending=True,inplace=True)
+    
+    hoje = datetime.now().date()
+    um_mes_atras = hoje - pd.DateOffset(months=1)
+    seis_meses_atras = hoje - pd.DateOffset(months=6)
+    um_ano_atras = hoje - pd.DateOffset(years=1)
+    cinco_anos_atras = hoje - pd.DateOffset(years=5)
+    dez_anos_atras = hoje - pd.DateOffset(years=10)
+    df_um_mes_atras = dft[dft['dif'] > um_mes_atras]['cna_name'].sum()
+    df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cna_name'].sum()
+    df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cna_name'].sum()
+    df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cna_name'].sum()
+    df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cna_name'].sum()
+    print(df_dez_anos_atras)
+    scroll = {'um_mes':str(df_um_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
 
     if len(df)>0:
         df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
@@ -302,7 +319,8 @@ def cnpj():
         'market_growth': str(razao),
         'market_trend': market_trend,
         'market_growing':mkt_rate_dict,
-        'mean_age':str(round(mean_age,2))
+        'mean_age':str(round(mean_age,2)),
+        'scroll':scroll
                 }
         return json.dumps(final_dict,indent=4)
     else:
