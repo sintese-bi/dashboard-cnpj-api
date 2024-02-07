@@ -231,7 +231,7 @@ def cnpj():
             mkt_rate_dict = df_qtd.to_dict(orient='records')
         except Exception as e:
             print(e)
-            mkt_rate_dict=0
+            mkt_rate_dict='0'
             razao = 0
 
         count_cnpj = len(df_size)
@@ -293,16 +293,16 @@ def cnpj():
 
         final_dict = {
         'listCnpj': list_cnpj,
-        'count_cnae': count_cnae,
-        'count_cnpj': count_cnpj,
+        'count_cnae': str(count_cnae),
+        'count_cnpj': str(count_cnpj),
         'count_age': count_age_dict,
         'count_size': count_size_dict,
         'count_state': count_state_dict,
-        'market_size': market_size,
-        'market_growth': razao,
+        'market_size': str(market_size),
+        'market_growth': str(razao),
         'market_trend': market_trend,
         'market_growing':mkt_rate_dict,
-        'mean_age':round(mean_age,2)
+        'mean_age':str(round(mean_age,2))
                 }
         return json.dumps(final_dict,indent=4)
     else:
