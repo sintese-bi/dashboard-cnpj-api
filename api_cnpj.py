@@ -100,6 +100,33 @@ def states():
 
     return json_data
 
+@app.route(f'/{VERSION}/mei', methods=['GET'])
+def mei():
+    year = request.args.get('year')
+    state = request.args.get('state')
+
+    if year in ['2017','2016','2015']:
+        query = f"SELECT * FROM mei_{year} WHERE uf='{state}'"
+    elif year in ['2020','2019','2018']:
+        query = f"SELECT * FROM mei_{year} WHERE uf='{state}'"
+    else:
+        query = f"SELECT * FROM mei_{year} WHERE uf='{state}'"
+
+    print(query)
+    result_mei = db.session.execute(text(query)).fetchall()
+
+    df = pd.DataFrame(result_mei)
+    print(df)
+
+    df_dict = df.to_dict(orient='records')
+
+    json_data = {'mei':df_dict}
+
+
+    return json.dumps(json_data,indent=4)
+
+
+
 
 @app.route(f'/{VERSION}/cities', methods=['GET'])
 def cities():
@@ -286,7 +313,15 @@ def cnpj():
         else:
             market_trend='Baixa'
 
-        market_size = sum(df_size['capital_social'])
+        mkt_result = []
+
+        for value in df_size['capital_social']:
+            if value>1000000000:
+                mkt_result.append(0)
+            else:
+                mkt_result.append(value)    
+
+        market_size = sum(mkt_result)
 
         df_size['data_incio_atividade']=df_size['data_incio_atividade'].astype(str)
         count_age = df_size['idade'].value_counts().reset_index()
