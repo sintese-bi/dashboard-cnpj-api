@@ -234,18 +234,18 @@ def cnpj():
     dft.sort_values(by='dif',ascending=True,inplace=True)
     
     hoje = datetime.now().date()
-    um_mes_atras = hoje - pd.DateOffset(months=1)
+    tres_mes_atras = hoje - pd.DateOffset(months=3)
     seis_meses_atras = hoje - pd.DateOffset(months=6)
     um_ano_atras = hoje - pd.DateOffset(years=1)
     cinco_anos_atras = hoje - pd.DateOffset(years=5)
     dez_anos_atras = hoje - pd.DateOffset(years=10)
-    df_um_mes_atras = dft[dft['dif'] > um_mes_atras]['cna_name'].sum()
+    df_tres_mes_atras = dft[dft['dif'] > tres_mes_atras]['cna_name'].sum()
     df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cna_name'].sum()
     df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cna_name'].sum()
     df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cna_name'].sum()
     df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cna_name'].sum()
     print(df_dez_anos_atras)
-    scroll = {'um_mes':str(df_um_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
+    scroll = {'tres_meses':str(df_tres_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
 
     if len(df)>0:
         df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
@@ -256,23 +256,24 @@ def cnpj():
         df_size = df_dates[df_dates['porte'].isin(size)]
 
         try:
+            mkt_rate_dict = []
+            for cnae in df_size['cna_name'].unique().tolist():
+                df2=df_size[df_size['cna_name']==cnae].sort_values('data_incio_atividade',ascending=False)
+                df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
 
-            df2=df_size.sort_values('data_incio_atividade',ascending=False)
-            df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
+                df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
+                p_valor = df_qtd['cna_name'].iloc[0]
+                r_valor = df_qtd['cna_name'].iloc[1:].sum()
 
-            df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
-            p_valor = df_qtd['cna_name'].iloc[0]
-            r_valor = df_qtd['cna_name'].iloc[1:].sum()
+                razao = r_valor - p_valor
+                df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
+                df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
+                df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
+                df_qtd.columns=['Dif_Meses','count']
 
-            razao = r_valor - p_valor
-            df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
-            df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
-            df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
-            df_qtd.columns=['Dif_Meses','count']
+                print(df_qtd)
 
-            print(df_qtd)
-
-            mkt_rate_dict = df_qtd.to_dict(orient='records')
+                mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
         except Exception as e:
             print(e)
             mkt_rate_dict='0'
