@@ -67,6 +67,24 @@ def activities():
 
     return json_data
 
+@app.route(f'/{VERSION}/natjuri', methods=['GET'])
+def natjuri():
+
+    connection = connectionDataBase()
+
+    cursor=connection.cursor()
+
+    query = cursor.execute("SELECT DISTINCT  nat_juri from nat_juri")
+
+    query = cursor.fetchall()
+
+    print(query)
+
+    json_data = {"activites":[x[0].capitalize() for x in query ]}
+
+
+    return json_data
+
 @app.route(f'/{VERSION}/cnaeCode', methods=['GET'])
 def cnaeCode():
 
