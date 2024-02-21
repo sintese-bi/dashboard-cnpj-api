@@ -10,6 +10,9 @@ from flask import Flask
 from flask_caching import Cache
 import re
 from datetime import datetime, timedelta
+from flask_compress import Compress
+
+
 
 db_password = "2023@Tag"
 #db_password = "saulodados"
@@ -188,36 +191,36 @@ def cnpj():
     print(result)
     if len(states)==1:
         if len(municipio)==1:
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
                         SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
-                        WHERE cc.cnae_principal  {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt 
+                        WHERE cc.cnae_principal  {query_cna} AND cc.uf='{states[0]}') AS tt 
                         left join em_empresas ee on ee.cnpj = tt.cnpj 
                         where tt.muni_name = '{cities[0]}' 
                         '''
         else:
             print('else')
             #municipio=find(cities)[0]
-            query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+            query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
                         SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}' AND  cc.sit_cadastral = 'Ativa' ) AS tt where tt.muni_name IN {tuple(municipio)}'''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt where tt.muni_name IN {tuple(municipio)}'''
     else:
-        query_cnpj = f'''SELECT tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
                         SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal {query_cna} AND cc.uf IN {tuple(states)} AND  cc.sit_cadastral = 'Ativa' ) AS tt '''
+                        WHERE cc.cnae_principal {query_cna} AND cc.uf IN {tuple(states)}) AS tt '''
         
     print(query_cnpj)
 
@@ -257,6 +260,7 @@ def cnpj():
 
         try:
             mkt_rate_dict = []
+            list_razao = []
             for cnae in df_size['cna_name'].unique().tolist():
                 df2=df_size[df_size['cna_name']==cnae].sort_values('data_incio_atividade',ascending=False)
                 df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
@@ -265,7 +269,8 @@ def cnpj():
                 p_valor = df_qtd['cna_name'].iloc[0]
                 r_valor = df_qtd['cna_name'].iloc[1:].sum()
 
-                razao = r_valor - p_valor
+                razao_s = r_valor - p_valor
+                list_razao.append(razao_s)
                 df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
                 df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
                 df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
@@ -274,6 +279,7 @@ def cnpj():
                 print(df_qtd)
 
                 mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
+            razao=sum(list_razao)
         except Exception as e:
             print(e)
             mkt_rate_dict='0'
