@@ -10,7 +10,7 @@ from flask import Flask
 from flask_caching import Cache
 import re
 from datetime import datetime, timedelta
-from flask_compress import Compress
+
 
 
 
