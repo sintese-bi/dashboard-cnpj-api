@@ -186,6 +186,7 @@ def cnpj():
     states = response.get("states")
     dates = response.get("dateRange")
     size= response.get("porte")
+    cod_nat = response.get("cod_nat")
     print(dates)
     cnae_names = response.get('activities')
     if len(cnae_names)==1:
@@ -274,7 +275,8 @@ def cnpj():
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
         df=df.sort_values(by='data_incio_atividade')
         df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
-        df_size = df_dates[df_dates['porte'].isin(size)]
+        df_size_ = df_dates[df_dates['porte'].isin(size)]
+        df_size =df_size_[df_size_['cod_nat_juri_'].isin(cod_nat)]
 
         try:
             mkt_rate_dict = []
