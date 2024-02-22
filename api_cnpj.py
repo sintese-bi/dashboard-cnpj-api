@@ -151,18 +151,29 @@ def mei():
 
 @app.route(f'/{VERSION}/cities', methods=['GET'])
 def cities():
-    state = request.args.get('state')
+    
     connection = connectionDataBase()
 
     cursor=connection.cursor()
+    state = request.args.getlist('state')
+    print(state)
+    if len(state)==1:
+        query = cursor.execute(f"SELECT DISTINCT sm.state_mun from state_muni sm WHERE sm.state='{state[0]}'")
 
-    query = cursor.execute(f"SELECT DISTINCT sm.muni_name from state_muni sm WHERE sm.state='{state}'")
+        query = cursor.fetchall()
 
-    query = cursor.fetchall()
+        print(query)
 
-    print(query)
+        json_data = {"cities":[x[0].upper() for x in query ]}
+    else:
+        query = cursor.execute(f"SELECT DISTINCT sm.state_mun from state_muni sm WHERE sm.state IN {tuple(state)}")
 
-    json_data = {"cities":[x[0].upper() for x in query ]}
+        query = cursor.fetchall()
+
+        print(query)
+
+        json_data = {"cities":[x[0].upper() for x in query ]}
+
 
 
     return json_data
@@ -209,8 +220,8 @@ def cnpj():
         municipio=find(cities)[0]
     print(result)
     if len(states)==1:
-        if len(municipio)==1:
-            query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+
+        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
                         SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
@@ -218,19 +229,18 @@ def cnpj():
                         left join cep_lat_long cp on cp.cep=cc.cep 
                         WHERE cc.cnae_principal  {query_cna} AND cc.uf='{states[0]}') AS tt 
                         left join em_empresas ee on ee.cnpj = tt.cnpj 
-                        where tt.muni_name = '{cities[0]}' 
                         '''
-        else:
-            print('else')
-            #municipio=find(cities)[0]
-            query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
-                        FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
-                        left join mun_municipio mm on mm.muni_cod = cc.muncipio
-                        left join em_empresas ee on ee.cnpj = cc.cnpj
-                        left join cep_lat_long cp on cp.cep=cc.cep
-                        left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-                        WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt where tt.muni_name IN {tuple(municipio)}'''
+
+        # print('else')
+        #     #municipio=find(cities)[0]
+        #     query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        #                 FROM (
+        #                 SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+        #                 left join mun_municipio mm on mm.muni_cod = cc.muncipio
+        #                 left join em_empresas ee on ee.cnpj = cc.cnpj
+        #                 left join cep_lat_long cp on cp.cep=cc.cep
+        #                 left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
+        #                 WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt '''
     else:
         query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
@@ -275,8 +285,15 @@ def cnpj():
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
         df=df.sort_values(by='data_incio_atividade')
         df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
-        df_size_ = df_dates[df_dates['porte'].isin(size)]
-        df_size =df_size_[df_size_['cod_nat_juri_'].isin(cod_nat)]
+        df_size__ = df_dates[df_dates['porte'].isin(size)]
+        df_size_ =df_size__[df_size__['cod_nat_juri_'].isin(cod_nat)]
+        df_size_['st_muni']=df_size_['muni_name'] +' - ' + df_size_['uf']
+        if len(municipio)>0:
+            df_size = df_size_[df_size_['st_muni'].isin(municipio)]
+        else:
+            df_size = df_size_
+
+        print(df_size_['st_muni'])
 
         try:
             mkt_rate_dict = []
