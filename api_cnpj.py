@@ -222,9 +222,9 @@ def cnpj():
     print(result)
     if len(states)==1:
 
-        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.sit_cadastral,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
@@ -243,9 +243,9 @@ def cnpj():
         #                 left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
         #                 WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt '''
     else:
-        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
+        query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.sit_cadastral,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
@@ -300,11 +300,14 @@ def cnpj():
         try:
             mkt_rate_dict = []
             list_razao = []
+            list_sitCadastral=[]
             for cnae in df_size['cna_name'].unique().tolist():
                 df2=df_size[df_size['cna_name']==cnae]
                 df_qtd=pd.DataFrame(df2['data_incio_atividade'].value_counts()).reset_index().sort_values(by='data_incio_atividade',ascending=False)
 
-                print(df_qtd)
+                df_sitCadastral=pd.DataFrame(df_size['sit_cadastral'].value_counts()).reset_index()
+                print(df_sitCadastral)
+                list_sitCadastral.append({f'{cnae}':df_sitCadastral.to_dict(orient='records')})
                 mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
                 list_razao.append(df_qtd['count'].sum())
             
@@ -379,7 +382,7 @@ def cnpj():
         count_age_dict = count_age.to_dict(orient='records')
         count_size_dict = count_size.to_dict(orient='records')
         count_state_dict = count_state.to_dict(orient='records')
-
+        print(razao)
         final_dict = {
         'listCnpj': list_cnpj,
         'count_cnae': str(count_cnae),
@@ -391,6 +394,7 @@ def cnpj():
         'market_growth': str(razao),
         'market_trend': market_trend,
         'market_growing':mkt_rate_dict,
+        'sit_cadastral':list_sitCadastral,
         'mean_age':str(round(mean_age,2)),
         'scroll':scroll
                 }
