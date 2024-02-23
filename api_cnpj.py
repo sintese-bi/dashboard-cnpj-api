@@ -306,7 +306,10 @@ def cnpj():
 
                 print(df_qtd)
                 mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
+                list_razao.append(df_qtd['count'].sum())
+            
             razao=sum(list_razao)
+            print(razao)
         except Exception as e:
             print(e)
             mkt_rate_dict='0'
