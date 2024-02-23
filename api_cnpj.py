@@ -198,6 +198,7 @@ def cnpj():
     dates = response.get("dateRange")
     size= response.get("porte")
     cod_nat = response.get("cod_nat")
+    cod_nat = [x.lower() for x in cod_nat]
     print(dates)
     cnae_names = response.get('activities')
     if len(cnae_names)==1:
@@ -284,8 +285,9 @@ def cnpj():
         df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
         df=df.sort_values(by='data_incio_atividade')
-        df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<f'{dates[1]}')]
+        df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<=f'{dates[1]}')]
         df_size__ = df_dates[df_dates['porte'].isin(size)]
+        df_size__['cod_nat_juri_'] = df_size__['cod_nat_juri_'].str.lower()
         df_size_ =df_size__[df_size__['cod_nat_juri_'].isin(cod_nat)]
         df_size_['st_muni']=df_size_['muni_name'] +' - ' + df_size_['uf']
         if len(municipio)>0:
@@ -299,22 +301,10 @@ def cnpj():
             mkt_rate_dict = []
             list_razao = []
             for cnae in df_size['cna_name'].unique().tolist():
-                df2=df_size[df_size['cna_name']==cnae].sort_values('data_incio_atividade',ascending=False)
-                df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
-
-                df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
-                # p_valor = df_qtd['cna_name'].iloc[0]
-                r_valor = df_qtd['cna_name'].iloc[0:].sum()
-
-                razao_s = r_valor 
-                list_razao.append(razao_s)
-                df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
-                df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
-                df_qtd['Dif_Meses']=df_qtd['Dif_Meses'].astype(str)
-                df_qtd.columns=['Dif_Meses','count']
+                df2=df_size[df_size['cna_name']==cnae]
+                df_qtd=pd.DataFrame(df2['data_incio_atividade'].value_counts()).reset_index().sort_values(by='data_incio_atividade',ascending=False)
 
                 print(df_qtd)
-
                 mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
             razao=sum(list_razao)
         except Exception as e:
