@@ -303,10 +303,10 @@ def cnpj():
                 df2['Dif_Meses'] =df2['data_incio_atividade'].dt.to_period('M')
 
                 df_qtd = pd.DataFrame(df2[['cna_name','Dif_Meses']].groupby('Dif_Meses').count()).reset_index()
-                p_valor = df_qtd['cna_name'].iloc[0]
-                r_valor = df_qtd['cna_name'].iloc[1:].sum()
+                # p_valor = df_qtd['cna_name'].iloc[0]
+                r_valor = df_qtd['cna_name'].iloc[0:].sum()
 
-                razao_s = r_valor - p_valor
+                razao_s = r_valor 
                 list_razao.append(razao_s)
                 df_qtd['Dif_Meses'] = pd.to_datetime(df_qtd['Dif_Meses'].astype(str) + '-01')
                 df_qtd['Dif_Meses']=pd.to_datetime(df_qtd['Dif_Meses'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
