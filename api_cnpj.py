@@ -300,6 +300,7 @@ def cnpj():
         try:
             mkt_rate_dict = []
             list_razao = []
+            list_init = []
             list_sitCadastral=[]
             for cnae in df_size['cna_name'].unique().tolist():
                 df2=df_size[df_size['cna_name']==cnae]
@@ -310,8 +311,9 @@ def cnpj():
                 list_sitCadastral.append({f'{cnae}':df_sitCadastral.to_dict(orient='records')})
                 mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
                 list_razao.append(df_qtd['count'].sum())
+                list_init.append(df_qtd['count'][0])
             
-            razao=sum(list_razao)
+            razao=(sum(list_razao)-sum(list_init))/sum(list_razao)*100
             print(razao)
         except Exception as e:
             print(e)
