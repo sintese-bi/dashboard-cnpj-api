@@ -198,29 +198,31 @@ def cnpj():
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
-    df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
-    dfo=df.copy()
-    dfo['dif'] = dfo['data_incio_atividade'].dt.to_period('M')
-    dft = pd.DataFrame(dfo[['cna_name','dif']].groupby('dif').count()).reset_index()
-    dft['dif']=pd.to_datetime(dft['dif'].astype(str) + '-01')
-    dft['dif']=pd.to_datetime(dft['dif'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
-    dft.sort_values(by='dif',ascending=True,inplace=True)
-    
-    hoje = datetime.now().date()
-    um_mes_atras = hoje - pd.DateOffset(months=1)
-    seis_meses_atras = hoje - pd.DateOffset(months=6)
-    um_ano_atras = hoje - pd.DateOffset(years=1)
-    cinco_anos_atras = hoje - pd.DateOffset(years=5)
-    dez_anos_atras = hoje - pd.DateOffset(years=10)
-    df_um_mes_atras = dft[dft['dif'] > um_mes_atras]['cna_name'].sum()
-    df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cna_name'].sum()
-    df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cna_name'].sum()
-    df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cna_name'].sum()
-    df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cna_name'].sum()
-    print(df_dez_anos_atras)
-    scroll = {'um_mes':str(df_um_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
-
     if len(df)>0:
+        
+        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+        dfo=df.copy()
+        dfo['dif'] = dfo['data_incio_atividade'].dt.to_period('M')
+        dft = pd.DataFrame(dfo[['cna_name','dif']].groupby('dif').count()).reset_index()
+        dft['dif']=pd.to_datetime(dft['dif'].astype(str) + '-01')
+        dft['dif']=pd.to_datetime(dft['dif'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
+        dft.sort_values(by='dif',ascending=True,inplace=True)
+    
+        hoje = datetime.now().date()
+        um_mes_atras = hoje - pd.DateOffset(months=1)
+        seis_meses_atras = hoje - pd.DateOffset(months=6)
+        um_ano_atras = hoje - pd.DateOffset(years=1)
+        cinco_anos_atras = hoje - pd.DateOffset(years=5)
+        dez_anos_atras = hoje - pd.DateOffset(years=10)
+        df_um_mes_atras = dft[dft['dif'] > um_mes_atras]['cna_name'].sum()
+        df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cna_name'].sum()
+        df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cna_name'].sum()
+        df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cna_name'].sum()
+        df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cna_name'].sum()
+        print(df_dez_anos_atras)
+        scroll = {'um_mes':str(df_um_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
+
+    
         df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
         df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
@@ -324,7 +326,21 @@ def cnpj():
                 }
         return json.dumps(final_dict,indent=4)
     else:
-        final_dict = {'listCnpj':[],'count_cnae':0,'count_cnpj':0,'market_size':0}
+        scroll = {'um_mes':'0','seis_meses':'0','um_ano':'0','cinco_anos':'0','dez_anos':'0'}
+        final_dict = {
+        'listCnpj': [],
+        'count_cnae': '0',
+        'count_cnpj': '0',
+        'count_age': [],
+        'count_size': [],
+        'count_state': [],
+        'market_size': '0',
+        'market_growth': '0',
+        'market_trend': '-',
+        'market_growing':[],
+        'mean_age':'0',
+        'scroll':scroll
+                }
         return json.dumps(final_dict,indent=4)
     
 
