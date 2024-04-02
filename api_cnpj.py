@@ -284,7 +284,7 @@ def cnpj():
         #                 left join em_empresas ee on ee.cnpj = cc.cnpj
         #                 left join cep_lat_long cp on cp.cep=cc.cep
         #                 left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
-        #                 WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt '''
+        #                 WHERE cc.cnae_principal {query_cna} AND cc.uf='{states[0]}') AS tt ''
     else:
         query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.sit_cadastral,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.email,tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
@@ -446,7 +446,22 @@ def cnpj():
                 }
         return json.dumps(final_dict,indent=4)
     else:
-        final_dict = {'listCnpj':[],'count_cnae':0,'count_cnpj':0,'market_size':0}
+        scroll = {'tres_meses':'0','seis_meses':'0','um_ano':'0','cinco_anos':'0','dez_anos':'0'}
+        final_dict = {
+        'listCnpj': [],
+        'count_cnae': '0',
+        'count_cnpj': '0',
+        'count_age': [],
+        'count_size': [],
+        'count_state': [],
+        'market_size': '0',
+        'market_growth': '0',
+        'market_trend': '-',
+        'market_growing':[],
+        'sit_cadastral':[],
+        'mean_age':'0',
+        'scroll':scroll
+                }
         return json.dumps(final_dict,indent=4)
     
 
