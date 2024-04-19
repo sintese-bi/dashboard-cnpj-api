@@ -262,6 +262,9 @@ def cnpj():
     if cities is not None:
         print('none')
         municipio=find(cities)[0]
+    else:
+        municipio=[]
+
     print(result)
     if len(states)==1:
 
@@ -333,7 +336,9 @@ def cnpj():
         df_size__ = df_dates[df_dates['porte'].isin(size)]
         df_size__['cod_nat_juri_'] = df_size__['cod_nat_juri_'].str.lower()
         df_size_ =df_size__[df_size__['cod_nat_juri_'].isin(cod_nat)]
+        print(df_size_.columns)
         df_size_['st_muni']=df_size_['muni_name'] +' - ' + df_size_['uf']
+        
         if len(municipio)>0:
             df_size = df_size_[df_size_['st_muni'].isin(municipio)]
         else:
