@@ -229,6 +229,8 @@ def find_int(string):
         return None
 
 
+
+
 @app.route(f'/{VERSION}/cnpj', methods=['POST'])
 def cnpj():
     data = request.get_json() 
@@ -254,13 +256,13 @@ def cnpj():
         query_cnpj = f'''SELECT cc.cnpj_,cc.cnae_principal,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep from cnp_cnpj_ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas_ ee on ee.cnpj = cc.cnpj
-                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod = '{states[0]}'
+                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod = '{states[0]}' limit 100
                         '''
     else:
         query_cnpj = f'''SELECT cc.cnpj_,cc.cnae_principal,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,mm.state_mun,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep from cnp_cnpj_ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas_ ee on ee.cnpj = cc.cnpj
-                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod IN {tuple(states)}'''
+                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod IN {tuple(states)} limit 100'''
         
     print(query_cnpj)
 
@@ -268,164 +270,165 @@ def cnpj():
     count_cnae = len(cnae_names)
     result_cnpj = db.session.execute(text(query_cnpj)).fetchall()
     df = pd.DataFrame(result_cnpj)
-    # if len(df)>0:
-    #     df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
-    #     dfo=df.copy()
-    #     dfo['dif'] = dfo['data_incio_atividade'].dt.to_period('M')
-    #     dft = pd.DataFrame(dfo[['cnae_principal','dif']].groupby('dif').count()).reset_index()
-    #     dft['dif']=pd.to_datetime(dft['dif'].astype(str) + '-01')
-    #     dft['dif']=pd.to_datetime(dft['dif'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
-    #     dft.sort_values(by='dif',ascending=True,inplace=True)
+    if len(df)>0:
+        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+        dfo=df.copy()
+        dfo['dif'] = dfo['data_incio_atividade'].dt.to_period('M')
+        dft = pd.DataFrame(dfo[['cnae_principal','dif']].groupby('dif').count()).reset_index()
+        dft['dif']=pd.to_datetime(dft['dif'].astype(str) + '-01')
+        dft['dif']=pd.to_datetime(dft['dif'] + pd.offsets.MonthEnd(0),format='%Y-%m-%d')
+        dft.sort_values(by='dif',ascending=True,inplace=True)
     
-    #     hoje = datetime.now().date()
-    #     tres_mes_atras = hoje - pd.DateOffset(months=3)
-    #     seis_meses_atras = hoje - pd.DateOffset(months=6)
-    #     um_ano_atras = hoje - pd.DateOffset(years=1)
-    #     cinco_anos_atras = hoje - pd.DateOffset(years=5)
-    #     dez_anos_atras = hoje - pd.DateOffset(years=10)
-    #     df_tres_mes_atras = dft[dft['dif'] > tres_mes_atras]['cnae_principal'].sum()
-    #     df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cnae_principal'].sum()
-    #     df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cnae_principal'].sum()
-    #     df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cnae_principal'].sum()
-    #     df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cnae_principal'].sum()
-    #     print(df_dez_anos_atras)
-    #     scroll = {'tres_meses':str(df_tres_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
+        hoje = datetime.now().date()
+        tres_mes_atras = hoje - pd.DateOffset(months=3)
+        seis_meses_atras = hoje - pd.DateOffset(months=6)
+        um_ano_atras = hoje - pd.DateOffset(years=1)
+        cinco_anos_atras = hoje - pd.DateOffset(years=5)
+        dez_anos_atras = hoje - pd.DateOffset(years=10)
+        df_tres_mes_atras = dft[dft['dif'] > tres_mes_atras]['cnae_principal'].sum()
+        df_seis_meses_atras = dft[dft['dif'] > seis_meses_atras]['cnae_principal'].sum()
+        df_um_ano_atras = dft[dft['dif'] > um_ano_atras]['cnae_principal'].sum()
+        df_cinco_anos_atras = dft[dft['dif'] > cinco_anos_atras]['cnae_principal'].sum()
+        df_dez_anos_atras = dft[dft['dif'] > dez_anos_atras]['cnae_principal'].sum()
+        print(df_dez_anos_atras)
+        scroll = {'tres_meses':str(df_tres_mes_atras),'seis_meses':str(df_seis_meses_atras),'um_ano':str(df_um_ano_atras),'cinco_anos':str(df_cinco_anos_atras),'dez_anos':str(df_dez_anos_atras)}
 
     
-    #     df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
-    #     df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
-    #     df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
-    #     df=df.sort_values(by='data_incio_atividade')
-    #     df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<=f'{dates[1]}')]
-    #     df_size__ = df_dates[df_dates['porte'].isin(size)]
-    #     df_size__['cod_nat_juri_'] = df_size__['cod_nat_juri_'].str.lower()
-    #     df_size =df_size__[df_size__['cod_nat_juri_'].isin(cod_nat)]
+        df['data_situacao_cadastral']=pd.to_datetime(df['data_situacao_cadastral'].astype(str),format='%Y-%m-%d')
+        df['data_situacao_cadastral']=df['data_situacao_cadastral'].astype(str)
+        df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
+        df=df.sort_values(by='data_incio_atividade')
+        df_dates = df[(df['data_incio_atividade']>=f'{dates[0]}') & (df['data_incio_atividade']<=f'{dates[1]}')]
+        df_size__ = df_dates[df_dates['porte'].isin(size)]
+        df_size__['cod_nat_juri_'] = df_size__['cod_nat_juri_'].str.lower()
+        df_size =df_size__[df_size__['cod_nat_juri_'].isin(cod_nat)]
 
-    #     # print(df_size_['st_muni'])
+        # print(df_size_['st_muni'])
 
-    #     try:
-    #         mkt_rate_dict = []
-    #         list_razao = []
-    #         list_init = []
-    #         list_sitCadastral=[]
-    #         for cnae in df_size['cnae_principal'].unique().tolist():
-    #             df2=df_size[df_size['cnae_principal']==cnae]
-    #             df_qtd=pd.DataFrame(df2['data_incio_atividade'].value_counts()).reset_index().sort_values(by='data_incio_atividade',ascending=False)
+        try:
+            mkt_rate_dict = []
+            list_razao = []
+            list_init = []
+            list_sitCadastral=[]
+            for cnae in df_size['cnae_principal'].unique().tolist():
+                df2=df_size[df_size['cnae_principal']==cnae]
+                df_qtd=pd.DataFrame(df2['data_incio_atividade'].value_counts()).reset_index().sort_values(by='data_incio_atividade',ascending=False)
 
-    #             df_sitCadastral=pd.DataFrame(df_size['sit_cadastral'].value_counts()).reset_index()
-    #             print(df_sitCadastral)
-    #             list_sitCadastral.append({f'{cnae}':df_sitCadastral.to_dict(orient='records')})
-    #             mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
-    #             list_razao.append(df_qtd['count'].sum())
-    #             list_init.append(df_qtd['count'][0])
+                df_sitCadastral=pd.DataFrame(df_size['sit_cadastral'].value_counts()).reset_index()
+                print(df_sitCadastral)
+                list_sitCadastral.append({f'{cnae}':df_sitCadastral.to_dict(orient='records')})
+                mkt_rate_dict.append({f'{cnae}':df_qtd.to_dict(orient='records')})
+                list_razao.append(df_qtd['count'].sum())
+                list_init.append(df_qtd['count'][0])
             
-    #         razao=round((sum(list_razao)-sum(list_init))/sum(list_razao)*100,2)
-    #         print(razao)
-    #     except Exception as e:
-    #         print(e)
-    #         mkt_rate_dict='0'
-    #         razao = 0
+            razao=round((sum(list_razao)-sum(list_init))/sum(list_razao)*100,2)
+            print(razao)
+        except Exception as e:
+            print(e)
+            mkt_rate_dict='0'
+            razao = 0
 
-    #     count_cnpj = len(df_size)
-    #     df_qtd = df[['cnae_principal','data_incio_atividade']].groupby('cnae_principal').count()
-    #     print(pd.DataFrame(df_qtd))
+        count_cnpj = len(df_size)
+        df_qtd = df[['cnae_principal','data_incio_atividade']].groupby('cnae_principal').count()
+        print(pd.DataFrame(df_qtd))
 
-    #     df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
-    #     df_size['capital_social']=df_size['capital_social'].astype(float)
-    #     map_fat = {'Micro Empresa':'Igual ou inferior a R$360.000','Empresa de Pequeno porte':'Igual ou inferior a R$4.800.000,00 e superior a R$360.000,00','Demais':'Faturamento Não informado na Receita'}
+        df_size.loc[df_size['capital_social'].isnull(), 'capital_social'] = 1
+        df_size['capital_social']=df_size['capital_social'].astype(float)
+        map_fat = {'Micro Empresa':'Igual ou inferior a R$360.000','Empresa de Pequeno porte':'Igual ou inferior a R$4.800.000,00 e superior a R$360.000,00','Demais':'Faturamento Não informado na Receita'}
 
 
-    #     df_size['Faturamento']=df_size['porte'].map(map_fat)
-    #     df_size['idade_']=df_size['idade'].apply(find_int)
+        df_size['Faturamento']=df_size['porte'].map(map_fat)
+        df_size['idade_']=df_size['idade'].apply(find_int)
 
-    #     mean_age = df_size['idade_'].mean()
+        mean_age = df_size['idade_'].mean()
 
         
 
-    #     df_quartile=df[['data_incio_atividade']]
+        df_quartile=df[['data_incio_atividade']]
 
-    #     q1,q2,q3=df_quartile['data_incio_atividade'].quantile([0.25, 0.5, 0.75])
+        q1,q2,q3=df_quartile['data_incio_atividade'].quantile([0.25, 0.5, 0.75])
 
-    #     contagem_q1 = df_size[df_size['data_incio_atividade'] <= q1].count()[0]
+        contagem_q1 = df_size[df_size['data_incio_atividade'] <= q1].count()[0]
 
-    #     contagem_q2 = df_size[(df_size['data_incio_atividade'] > q1) & (df_size['data_incio_atividade'] <= q2)].count()[0]
+        contagem_q2 = df_size[(df_size['data_incio_atividade'] > q1) & (df_size['data_incio_atividade'] <= q2)].count()[0]
 
-    #     contagem_q3 = df_size[(df_size['data_incio_atividade'] > q2) & (df_size['data_incio_atividade'] <= q3)].count()[0]
+        contagem_q3 = df_size[(df_size['data_incio_atividade'] > q2) & (df_size['data_incio_atividade'] <= q3)].count()[0]
 
-    #     maior_quartil = max([contagem_q1,contagem_q2,contagem_q3])
+        maior_quartil = max([contagem_q1,contagem_q2,contagem_q3])
 
-    #     if maior_quartil==contagem_q1:
-    #         market_trend = 'Alta'
-    #     elif maior_quartil == contagem_q2:
-    #         market_trend = 'Média'
-    #     else:
-    #         market_trend='Baixa'
+        if maior_quartil==contagem_q1:
+            market_trend = 'Alta'
+        elif maior_quartil == contagem_q2:
+            market_trend = 'Média'
+        else:
+            market_trend='Baixa'
 
-    #     mkt_result = []
+        mkt_result = []
 
-    #     for value in df_size['capital_social']:
-    #         if value>1000000000:
-    #             mkt_result.append(0)
-    #         else:
-    #             mkt_result.append(value)    
+        for value in df_size['capital_social']:
+            if value>1000000000:
+                mkt_result.append(0)
+            else:
+                mkt_result.append(value)    
 
-    #     market_size = sum(mkt_result)
+        market_size = sum(mkt_result)
 
-    #     df_size['data_incio_atividade']=df_size['data_incio_atividade'].astype(str)
-    #     count_age = df_size['idade'].value_counts().reset_index()
-    #     count_age.columns=['age','count']
-    #     count_age=count_age.sort_values(by='count', ascending=False)
+        df_size['data_incio_atividade']=df_size['data_incio_atividade'].astype(str)
+        count_age = df_size['idade'].value_counts().reset_index()
+        count_age.columns=['age','count']
+        count_age=count_age.sort_values(by='count', ascending=False)
 
 
-    #     count_size = df_size['porte'].value_counts().reset_index()
-    #     count_size.columns=['size','count']
-    #     count_size=count_size.sort_values(by='count', ascending=False)
+        count_size = df_size['porte'].value_counts().reset_index()
+        count_size.columns=['size','count']
+        count_size=count_size.sort_values(by='count', ascending=False)
 
-    #     count_state = df_size['uf'].value_counts().reset_index()
-    #     count_state.columns=['state','count']
+        count_state = df_size['uf'].value_counts().reset_index()
+        count_state.columns=['state','count']
 
-    #     count_state=count_state.sort_values(by='count', ascending=False)
+        count_state=count_state.sort_values(by='count', ascending=False)
 
-    #     list_cnpj = df_size.to_dict(orient='records')
-    #     count_age_dict = count_age.to_dict(orient='records')
-    #     count_size_dict = count_size.to_dict(orient='records')
-    #     count_state_dict = count_state.to_dict(orient='records')
-    #     print(razao)
-    #     final_dict = {
-    #     'listCnpj': list_cnpj,
-    #     'count_cnae': str(count_cnae),
-    #     'count_cnpj': str(count_cnpj),
-    #     'count_age': count_age_dict,
-    #     'count_size': count_size_dict,
-    #     'count_state': count_state_dict,
-    #     'market_size': str(market_size),
-    #     'market_growth': str(razao),
-    #     'market_trend': market_trend,
-    #     'market_growing':mkt_rate_dict,
-    #     'sit_cadastral':list_sitCadastral,
-    #     'mean_age':str(round(mean_age,2)),
-    #     'scroll':scroll
-    #             }
-    #     return json.dumps(final_dict,indent=4)
-    # else:
-    #     scroll = {'tres_meses':'0','seis_meses':'0','um_ano':'0','cinco_anos':'0','dez_anos':'0'}
-    #     final_dict = {
-    #     'listCnpj': [],
-    #     'count_cnae': '0',
-    #     'count_cnpj': '0',
-    #     'count_age': [],
-    #     'count_size': [],
-    #     'count_state': [],
-    #     'market_size': '0',
-    #     'market_growth': '0',
-    #     'market_trend': '-',
-    #     'market_growing':[],
-    #     'sit_cadastral':[],
-    #     'mean_age':'0',
-    #     'scroll':scroll
-    #             }
-    #     return json.dumps(final_dict,indent=4)
-    return "query"
+        list_cnpj = df_size.to_dict(orient='records')
+        count_age_dict = count_age.to_dict(orient='records')
+        count_size_dict = count_size.to_dict(orient='records')
+        count_state_dict = count_state.to_dict(orient='records')
+        print(razao)
+        final_dict = {
+        'listCnpj': list_cnpj,
+        'count_cnae': str(count_cnae),
+        'count_cnpj': str(count_cnpj),
+        'count_age': count_age_dict,
+        'count_size': count_size_dict,
+        'count_state': count_state_dict,
+        'market_size': str(market_size),
+        'market_growth': str(razao),
+        'market_trend': market_trend,
+        'market_growing':mkt_rate_dict,
+        'sit_cadastral':list_sitCadastral,
+        'mean_age':str(round(mean_age,2)),
+        'scroll':scroll
+                }
+        return json.dumps(final_dict,indent=4)
+    else:
+        scroll = {'tres_meses':'0','seis_meses':'0','um_ano':'0','cinco_anos':'0','dez_anos':'0'}
+        final_dict = {
+        'listCnpj': [],
+        'count_cnae': '0',
+        'count_cnpj': '0',
+        'count_age': [],
+        'count_size': [],
+        'count_state': [],
+        'market_size': '0',
+        'market_growth': '0',
+        'market_trend': '-',
+        'market_growing':[],
+        'sit_cadastral':[],
+        'mean_age':'0',
+        'scroll':scroll
+                }
+        return json.dumps(final_dict,indent=4)
+
+    return json.dumps(df.to_dict(orient='records'),indent=4)
         
 
 
