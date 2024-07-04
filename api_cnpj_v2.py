@@ -256,13 +256,13 @@ def cnpj():
         query_cnpj = f'''SELECT cc.cnpj_,cc.cnae_principal,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep from cnp_cnpj_ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas_ ee on ee.cnpj = cc.cnpj
-                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod = '{states[0]}' limit 100
+                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod = '{states[0]}' order by cc.data_incio_atividade limit 10000
                         '''
     else:
         query_cnpj = f'''SELECT cc.cnpj_,cc.cnae_principal,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,mm.state_mun,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep from cnp_cnpj_ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas_ ee on ee.cnpj = cc.cnpj
-                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod IN {tuple(states)} limit 100'''
+                        WHERE cc.cnae_principal {query_cna}  AND mm.muni_cod IN {tuple(states)} order by cc.data_incio_atividade limit 10000'''
         
     print(query_cnpj)
 
