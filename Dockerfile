@@ -23,4 +23,4 @@ COPY . /app
 EXPOSE 8080
 # configure the container to run in an executed manner
 ENTRYPOINT [ "python" ]
-CMD ["api_cnpj_v2.py" ]
+CMD ["api_cnpj.py" ]
