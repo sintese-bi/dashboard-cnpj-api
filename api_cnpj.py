@@ -480,6 +480,7 @@ def fcnpj():
     size= response.get("porte")
 
     cnae_names = response.get('activities')
+    cnae_names=[item for item in cnae_names if item is not None]
     if len(cnae_names)==1:
         query_cnaes = f"SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN ('{cnae_names[0]}') AND cna_subclass <> '' ORDER BY cna_subclass"
     else:
