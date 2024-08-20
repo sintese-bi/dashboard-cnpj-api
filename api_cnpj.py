@@ -244,6 +244,7 @@ def cnpj():
     cod_nat = [x.lower() for x in cod_nat]
     print(dates)
     cnae_names = response.get('activities')
+    cnae_names=[item for item in cnae_names if item is not None]
     if len(cnae_names)==1:
         query_cnaes = f"SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN ('{cnae_names[0]}') AND cna_subclass <> '' ORDER BY cna_subclass"
     else:
@@ -481,6 +482,7 @@ def fcnpj():
 
     cnae_names = response.get('activities')
     cnae_names=[item for item in cnae_names if item is not None]
+    print(cnae_names)
     if len(cnae_names)==1:
         query_cnaes = f"SELECT cna_subclass FROM cnae_cnaes_ WHERE cna_name IN ('{cnae_names[0]}') AND cna_subclass <> '' ORDER BY cna_subclass"
     else:
