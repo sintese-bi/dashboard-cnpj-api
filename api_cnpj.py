@@ -474,19 +474,15 @@ def cnpj():
 @app.route(f'/v2/scnpj', methods=['POST'])
 def scnpj():
     try:
-        conn = connectionDataBase()
-        cursor = conn.cursor()
         response = json.loads(request.data)
         cnae_names = response.get('activities')
         cnae_names=[item for item in cnae_names if item is not None]
         query = f'''select cc.cnpj_  as CNPJ, ee.porte,ee.cod_nat_juri_,ee.capital_social,CC.nome_fantasia as NOME_FANTASIA, cc.cnae_principal_ as ATIVIDADE, cc.idade,cc.data_incio_atividade,cc.email as EMAIL ,cc.telefone as TELEFONE ,cc.cep as CEP ,cc.logradouro as LOGRADOURO  ,cc.tipo_logradouro as TIPO ,cc.uf as ESTADO ,cc.muncipio_ as MUNICIPIO  
                 from cnp_cnpj_ cc 
                 left join em_empresas ee on ee.cnpj = cc.cnpj where cc.cnae_principal_ like '%{cnae_names[0]}%' and cc.sit_cadastral ='Ativa' and cc.telefone <>'00nan00000'    '''
-        query=cursor.execute(query)
-        query=cursor.fetchall()
+        result = db.session.execute(text(query)).fetchall()
         
-        nomes_colunas = [desc[0] for desc in cursor.description]
-        df = pd.DataFrame(query,columns=nomes_colunas)
+        df = pd.DataFrame(result)
         df['data_incio_atividade']=pd.to_datetime(df['data_incio_atividade'].astype(str),format='%Y-%m-%d')
         list_cnpj = df.to_dict(orient='records')
         final_dict = {'listCnpj': list_cnpj}
