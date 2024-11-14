@@ -30,7 +30,7 @@ app.config['ENV'] = 'production'
 app.config['SQLALCHEMY_DATABASE_URI'] = DB_CONFIG
 app.config['SQLALCHEMY_POOL_SIZE'] = 200
 app.config['SQLALCHEMY_MAX_OVERFLOW'] = 10
-app.config['TIMEOUT'] = 300
+app.config['TIMEOUT'] = 800
 db = SQLAlchemy(app)
 CORS(app)
 
