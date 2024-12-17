@@ -150,7 +150,7 @@ def mei():
 def email():
     response = json.loads(request.data)
     cnae_names = response.get('activities')
-    query_cnaes = f''' SELECT cc.cnae_principal_,cc.data_incio_atividade from cnp_cnpj_ cc where cc.cnae_principal_ IN {tuple(cnae_names)} 
+    query_cnaes = f''' SELECT cc.cnae_principal_,cc.data_incio_atividade from cnp_cnpj__ cc where cc.cnae_principal_ IN {tuple(cnae_names)} 
                 and cc.data_incio_atividade >= CURRENT_DATE - INTERVAL '3 months' '''
 
     result = db.session.execute(text(query_cnaes)).fetchall()
@@ -271,7 +271,7 @@ def cnpj():
 
         query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.sit_cadastral,tt.idade,tt.cna_name,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone,tt.email, tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.email,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj_ cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.email,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj__ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join cnae_cnaes_ cna on cna.cna_subclass = cc.cnae_principal
                         left join cep_lat_long cp on cp.cep=cc.cep 
@@ -292,7 +292,7 @@ def cnpj():
     else:
         query_cnpj = f'''SELECT distinct tt.cnpj_ as cnpj,tt.nome_fantasia,tt.sit_cadastral,tt.idade,tt.cna_name,tt.razao_social,tt.porte,tt.capital_social,tt.cod_nat_juri_,tt.qual_respons_,tt.uf,tt.data_situacao_cadastral,tt.data_incio_atividade,tt.telefone, tt.email,tt.muni_name,tt.logradouro ,tt.tipo_logradouro ,tt.complemento,tt.bairro ,tt.cep,tt.cep_lat,tt.cep_long
                         FROM (
-                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj_ cc
+                        SELECT cc.cnpj_,cc.cnpj,cna.cna_name,cc.nome_fantasia,cc.sit_cadastral,cc.idade,ee.razao_social,ee.porte,ee.capital_social,ee.cod_nat_juri_,ee.qual_respons_,cc.uf,cc.data_situacao_cadastral,cc.data_incio_atividade,cc.telefone,cc.email, mm.muni_name,cc.logradouro ,cc.tipo_logradouro ,cc.complemento,cc.bairro ,cc.cep,cp.cep_lat,cp.cep_long from cnp_cnpj__ cc
                         left join mun_municipio mm on mm.muni_cod = cc.muncipio
                         left join em_empresas ee on ee.cnpj = cc.cnpj
                         left join cep_lat_long cp on cp.cep=cc.cep
@@ -478,7 +478,7 @@ def scnpj():
         cnae_names = response.get('activities')
         cnae_names=[item for item in cnae_names if item is not None]
         query = f'''select cc.cnpj_  as CNPJ, ee.porte,ee.cod_nat_juri_,ee.capital_social,CC.nome_fantasia as NOME_FANTASIA, cc.cnae_principal_ as ATIVIDADE, cc.idade,cc.data_incio_atividade,cc.email as EMAIL ,cc.telefone as TELEFONE ,cc.cep as CEP ,cc.logradouro as LOGRADOURO  ,cc.tipo_logradouro as TIPO ,cc.uf as ESTADO ,cc.muncipio_ as MUNICIPIO  
-                from cnp_cnpj_ cc 
+                from cnp_cnpj__ cc 
                 left join em_empresas ee on ee.cnpj = cc.cnpj where cc.cnae_principal_ like '%{cnae_names[0]}%' and cc.sit_cadastral ='Ativa' and cc.telefone <>'00nan00000'    '''
         result = db.session.execute(text(query)).fetchall()
         
