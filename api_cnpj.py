@@ -14,8 +14,8 @@ from datetime import datetime, timedelta
 
 
 
-db_password = "2023@Tag"
-#db_password = "saulodados"
+
+#db_password = 
 db_password_encoded = quote_plus(db_password)
 
 
@@ -37,7 +37,7 @@ CORS(app)
 VERSION = "v2"
 
 def connectionDataBase():
-    connection = pg.connect(user="postgres", password="2023@Tag", host="159.65.42.225", port=5432, database="comercial_BI")
+    connection = "pg string connect")
     return connection
 
 
