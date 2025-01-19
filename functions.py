@@ -44,8 +44,7 @@ import psycopg2 as pg
 import pandas as pd
 
 def connectionDataBase():
-    connection = pg.connect(user="postgres", password="2023@Tag", host="159.65.42.225", port=5432, database="comercial_BI_Relational")
-    print(connection)
+"string connection"
     return connection
 conn = connectionDataBase()
 
